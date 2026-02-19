@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Xpiritkeyz Music Runner</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #050810;
+  --track: #0a0f1e;
+  --gold: #f0b429;
+  --gold2: #ffd166;
+  --cyan: #00f5d4;
+  --red: #ff4757;
+  --green: #2ed573;
+  --purple: #7c4dff;
+  --text: #e8eaf6;
+  --muted: #546e7a;
+  --surface: #0d1526;
+  --border: #1a2744;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Exo 2', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Stars background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 30% 60%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 60% 10%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 80% 80%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 50% 40%, rgba(255,255,255,0.2) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 30%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 20% 90%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(2px 2px at 70% 50%, rgba(240,180,41,0.3) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.screen { display: none; width: 100%; max-width: 480px; position: relative; z-index: 1; }
+.screen.active { display: flex; flex-direction: column; align-items: center; }
+
+/* ═══════════════════════════════
+   SPLASH SCREEN
+═══════════════════════════════ */
+#splash {
+  padding: 32px 24px;
+  text-align: center;
+  gap: 0;
+}
+
+.game-logo {
+  margin-bottom: 8px;
+}
+
+.logo-icon { font-size: 64px; display: block; animation: pulse 2s ease-in-out infinite; }
+
+@keyframes pulse {
+  0%,100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(240,180,41,0.5)); }
+  50% { transform: scale(1.08); filter: drop-shadow(0 0 24px rgba(240,180,41,0.9)); }
+}
+
+.brand {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.3em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+h1 {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(1.6rem, 6vw, 2.2rem);
+  font-weight: 900;
+  color: var(--text);
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+
+h1 span { color: var(--gold); }
+
+.tagline {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 32px;
+  letter-spacing: 0.05em;
+}
+
+.how-to-play {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 28px;
+  width: 100%;
+  text-align: left;
+}
+
+.how-to-play h3 {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.7rem;
+  color: var(--cyan);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.rule {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+  font-size: 0.88rem;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.rule-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+
+.difficulty-select {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.diff-btn {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 8px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  font-family: 'Exo 2', sans-serif;
+}
+
+.diff-btn:hover { transform: translateY(-2px); }
+.diff-btn.selected { border-color: var(--gold); background: rgba(240,180,41,0.1); }
+.diff-btn .diff-icon { font-size: 1.6rem; display: block; margin-bottom: 6px; }
+.diff-btn .diff-name { font-family: 'Orbitron', monospace; font-size: 0.6rem; letter-spacing: 0.1em; color: var(--gold); display: block; margin-bottom: 2px; }
+.diff-btn .diff-time { font-size: 0.75rem; color: var(--muted); }
+
+.btn-play {
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #050810;
+  border: none;
+  border-radius: 14px;
+  padding: 18px 48px;
+  font-family: 'Orbitron', monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 24px rgba(240,180,41,0.4);
+  width: 100%;
+}
+
+.btn-play:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(240,180,41,0.5); }
+.btn-play:active { transform: translateY(0); }
+
+/* ═══════════════════════════════
+   GAME SCREEN
+═══════════════════════════════ */
+#game {
+  padding: 0;
+  width: 100%;
+  max-width: 480px;
+}
+
+.game-hud {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.hud-item { text-align: center; }
+.hud-label { font-family: 'Orbitron', monospace; font-size: 0.55rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+.hud-value { font-family: 'Orbitron', monospace; font-size: 1.1rem; font-weight: 700; color: var(--gold); }
+.hud-value.cyan { color: var(--cyan); }
+
+.lives-display { display: flex; gap: 4px; justify-content: center; margin-top: 2px; }
+.heart { font-size: 1rem; transition: all 0.3s; }
+.heart.lost { opacity: 0.2; filter: grayscale(1); }
+
+/* GAME CANVAS AREA */
+.game-canvas {
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(180deg, #050d1f 0%, #0a1628 60%, #0d1f3c 100%);
+  position: relative;
+  overflow: hidden;
+  border-bottom: 2px solid var(--border);
+}
+
+/* Ground */
+.ground {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  background: linear-gradient(180deg, #0d2040 0%, #071428 100%);
+  border-top: 2px solid var(--cyan);
+  box-shadow: 0 -4px 20px rgba(0,245,212,0.2);
+}
+
+/* Ground grid lines moving */
+.ground-lines {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  overflow: hidden;
+}
+
+.ground-line {
+  position: absolute;
+  bottom: 0;
+  width: 2px;
+  height: 50px;
+  background: rgba(0,245,212,0.15);
+  animation: moveLine 0.8s linear infinite;
+}
+
+@keyframes moveLine {
+  from { transform: translateX(0); }
+  to { transform: translateX(-60px); }
+}
+
+/* RUNNER CHARACTER */
+.runner {
+  position: absolute;
+  bottom: 52px;
+  left: 60px;
+  width: 36px;
+  height: 48px;
+  z-index: 10;
+}
+
+.runner-body {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  animation: runAnim 0.4s steps(2) infinite;
+}
+
+@keyframes runAnim {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-3px); }
+  100% { transform: translateY(0px); }
+}
+
+.runner.crashed .runner-body {
+  animation: crashAnim 0.5s ease-out forwards;
+}
+
+@keyframes crashAnim {
+  0% { transform: rotate(0deg) translateY(0); }
+  30% { transform: rotate(-20deg) translateY(-10px); }
+  60% { transform: rotate(45deg) translateY(5px); }
+  100% { transform: rotate(90deg) translateY(20px); opacity: 0; }
+}
+
+/* SVG runner character */
+.runner-svg { width: 36px; height: 48px; }
+
+/* OBSTACLES */
+.obstacle {
+  position: absolute;
+  bottom: 52px;
+  right: -80px;
+  width: 56px;
+  height: 60px;
+  z-index: 5;
+  animation: slideObstacle linear forwards;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+@keyframes slideObstacle {
+  from { right: -80px; }
+  to { right: 110%; }
+}
+
+.obstacle-visual {
+  font-size: 2.8rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 8px rgba(255,71,87,0.6));
+  animation: wobble 0.3s ease-in-out infinite alternate;
+}
+
+@keyframes wobble {
+  from { transform: rotate(-5deg); }
+  to { transform: rotate(5deg); }
+}
+
+/* SPEED LINES */
+.speed-line {
+  position: absolute;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,245,212,0.3), transparent);
+  animation: speedLine linear infinite;
+}
+
+@keyframes speedLine {
+  from { transform: translateX(100%); opacity: 1; }
+  to { transform: translateX(-200%); opacity: 0; }
+}
+
+/* QUESTION PANEL */
+.question-panel {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 16px;
+  position: relative;
+}
+
+.timer-bar-wrap {
+  height: 5px;
+  background: var(--border);
+  border-radius: 3px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.timer-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.1s linear, background 0.5s;
+  background: var(--green);
+}
+
+.q-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.6rem;
+  color: var(--cyan);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.q-number-badge {
+  display: inline-block;
+  background: rgba(0,245,212,0.1);
+  border: 1px solid var(--cyan);
+  border-radius: 20px;
+  padding: 2px 10px;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.6rem;
+  color: var(--cyan);
+  margin-left: 8px;
+}
+
+.q-text {
+  font-size: clamp(0.95rem, 3vw, 1.1rem);
+  color: var(--text);
+  line-height: 1.4;
+  margin-bottom: 14px;
+  min-height: 48px;
+  font-weight: 600;
+}
+
+.answer-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.ans-btn {
+  background: var(--track);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 10px;
+  font-family: 'Exo 2', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.ans-btn:hover:not(:disabled) {
+  border-color: var(--gold);
+  background: rgba(240,180,41,0.1);
+  transform: scale(1.02);
+}
+
+.ans-btn:disabled { cursor: default; }
+.ans-btn.correct { border-color: var(--green); background: rgba(46,213,115,0.15); color: var(--green); }
+.ans-btn.wrong { border-color: var(--red); background: rgba(255,71,87,0.15); color: var(--red); }
+
+.ans-btn .key-hint {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.6rem;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* SPEED UP NOTIFICATION */
+.speed-notif {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(240,180,41,0.95);
+  color: #050810;
+  font-family: 'Orbitron', monospace;
+  font-size: 1.1rem;
+  font-weight: 900;
+  padding: 12px 28px;
+  border-radius: 12px;
+  z-index: 100;
+  animation: popIn 0.3s ease-out;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+@keyframes popIn {
+  from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+  to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+/* COMBO */
+.combo-display {
+  position: absolute;
+  top: 10px;
+  right: 16px;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.8rem;
+  color: var(--gold2);
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.combo-display.show { opacity: 1; }
+
+/* FLASH OVERLAY */
+.flash-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 20;
+}
+.flash-overlay.red { background: rgba(255,71,87,0.3); }
+.flash-overlay.green { background: rgba(46,213,115,0.2); }
+.flash-overlay.show { opacity: 1; }
+
+/* ═══════════════════════════════
+   GAME OVER SCREEN
+═══════════════════════════════ */
+#gameover {
+  padding: 40px 24px;
+  text-align: center;
+  gap: 16px;
+}
+
+.go-icon { font-size: 64px; display: block; margin-bottom: 8px; }
+.go-title {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(1.8rem, 6vw, 2.4rem);
+  font-weight: 900;
+  color: var(--red);
+  margin-bottom: 4px;
+}
+
+.go-subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 24px; }
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 12px;
+  text-align: center;
+}
+
+.stat-value {
+  font-family: 'Orbitron', monospace;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--gold);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.new-best {
+  background: rgba(240,180,41,0.1);
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.75rem;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+  margin-bottom: 16px;
+  display: none;
+}
+
+.go-buttons { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+
+.btn-secondary {
+  background: transparent;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-secondary:hover { border-color: var(--cyan); color: var(--cyan); }
+
+/* LEVEL UP banner */
+.levelup-banner {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, var(--purple), #5c35cc);
+  color: white;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 12px 28px;
+  border-radius: 30px;
+  z-index: 9999;
+  box-shadow: 0 4px 20px rgba(124,77,255,0.5);
+  animation: bannerIn 0.4s ease-out;
+  pointer-events: none;
+}
+
+@keyframes bannerIn {
+  from { top: -60px; opacity: 0; }
+  to { top: 20px; opacity: 1; }
+}
+
+/* Floating score +1 */
+.float-score {
+  position: absolute;
+  font-family: 'Orbitron', monospace;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--green);
+  pointer-events: none;
+  animation: floatUp 0.8s ease-out forwards;
+  z-index: 50;
+}
+
+@keyframes floatUp {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-50px); }
+}
+
+@media (max-width: 380px) {
+  .q-text { font-size: 0.9rem; }
+  .ans-btn { font-size: 0.82rem; padding: 12px 8px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════ SPLASH ═══════ -->
+<div id="splash" class="screen active">
+  <div class="game-logo">
+    <span class="logo-icon">🎵</span>
+  </div>
+  <div class="brand">Xpiritkeyz</div>
+  <h1>Music <span>Runner</span></h1>
+  <p class="tagline">Answer fast. Run far. Don't crash.</p>
+
+  <div class="how-to-play">
+    <h3>How To Play</h3>
+    <div class="rule"><span class="rule-icon">🏃</span><span>Your runner is always moving forward — obstacles are coming!</span></div>
+    <div class="rule"><span class="rule-icon">❓</span><span>Answer the music question before the timer runs out</span></div>
+    <div class="rule"><span class="rule-icon">✅</span><span>Correct answer = jump over the obstacle and score points</span></div>
+    <div class="rule"><span class="rule-icon">💥</span><span>Wrong answer or timeout = crash! You lose a life</span></div>
+    <div class="rule"><span class="rule-icon">⚡</span><span>Every 7 questions the speed increases — stay sharp!</span></div>
+    <div class="rule"><span class="rule-icon">❤️</span><span>You have 3 lives. Lose them all = Game Over</span></div>
+  </div>
+
+  <div style="font-family:'Orbitron',monospace;font-size:0.65rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px;align-self:flex-start;">Select Difficulty</div>
+  <div class="difficulty-select">
+    <div class="diff-btn selected" data-diff="easy" onclick="selectDiff(this,'easy')">
+      <span class="diff-icon">🟢</span>
+      <span class="diff-name">Easy</span>
+      <span class="diff-time">10 sec</span>
+    </div>
+    <div class="diff-btn" data-diff="medium" onclick="selectDiff(this,'medium')">
+      <span class="diff-icon">🟡</span>
+      <span class="diff-name">Medium</span>
+      <span class="diff-time">7 sec</span>
+    </div>
+    <div class="diff-btn" data-diff="hard" onclick="selectDiff(this,'hard')">
+      <span class="diff-icon">🔴</span>
+      <span class="diff-name">Hard</span>
+      <span class="diff-time">5 sec</span>
+    </div>
+  </div>
+
+  <button class="btn-play" onclick="startGame()">▶ START RUNNING</button>
+</div>
+
+<!-- ═══════ GAME ═══════ -->
+<div id="game" class="screen">
+  <!-- HUD -->
+  <div class="game-hud">
+    <div class="hud-item">
+      <div class="hud-label">Score</div>
+      <div class="hud-value" id="hudScore">0</div>
+    </div>
+    <div class="hud-item">
+      <div class="hud-label">Lives</div>
+      <div class="lives-display" id="livesDisplay">
+        <span class="heart" id="h1">❤️</span>
+        <span class="heart" id="h2">❤️</span>
+        <span class="heart" id="h3">❤️</span>
+      </div>
+    </div>
+    <div class="hud-item">
+      <div class="hud-label">Best</div>
+      <div class="hud-value cyan" id="hudBest">0</div>
+    </div>
+    <div class="hud-item">
+      <div class="hud-label">Speed</div>
+      <div class="hud-value" id="hudSpeed">x1</div>
+    </div>
+  </div>
+
+  <!-- CANVAS -->
+  <div class="game-canvas" id="gameCanvas">
+    <div class="flash-overlay" id="flashOverlay"></div>
+
+    <!-- Speed lines -->
+    <div class="speed-line" style="top:30%;width:40%;animation-duration:0.6s;animation-delay:0s;"></div>
+    <div class="speed-line" style="top:45%;width:25%;animation-duration:0.9s;animation-delay:0.3s;"></div>
+    <div class="speed-line" style="top:60%;width:35%;animation-duration:0.7s;animation-delay:0.15s;"></div>
+    <div class="speed-line" style="top:20%;width:20%;animation-duration:1.1s;animation-delay:0.5s;"></div>
+
+    <!-- Ground -->
+    <div class="ground"></div>
+    <div class="ground-lines" id="groundLines">
+      <div class="ground-line" style="left:0%"></div>
+      <div class="ground-line" style="left:15%"></div>
+      <div class="ground-line" style="left:30%"></div>
+      <div class="ground-line" style="left:45%"></div>
+      <div class="ground-line" style="left:60%"></div>
+      <div class="ground-line" style="left:75%"></div>
+      <div class="ground-line" style="left:90%"></div>
+    </div>
+
+    <!-- Runner -->
+    <div class="runner" id="runner">
+      <svg class="runner-svg" viewBox="0 0 36 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Body glow -->
+        <ellipse cx="18" cy="24" rx="14" ry="18" fill="rgba(0,245,212,0.05)"/>
+        <!-- Head -->
+        <circle cx="18" cy="8" r="7" fill="#f0b429" stroke="#ffd166" stroke-width="1"/>
+        <!-- Music note on head -->
+        <text x="14" y="12" font-size="8" fill="#050810">♪</text>
+        <!-- Torso -->
+        <rect x="12" y="15" width="12" height="14" rx="3" fill="#00f5d4" stroke="#00c9ad" stroke-width="1"/>
+        <!-- Arms animated -->
+        <line x1="12" y1="18" x2="5" y2="24" stroke="#f0b429" stroke-width="2.5" stroke-linecap="round" class="arm-l"/>
+        <line x1="24" y1="18" x2="31" y2="22" stroke="#f0b429" stroke-width="2.5" stroke-linecap="round" class="arm-r"/>
+        <!-- Legs -->
+        <line x1="15" y1="29" x2="11" y2="42" stroke="#00f5d4" stroke-width="3" stroke-linecap="round"/>
+        <line x1="21" y1="29" x2="25" y2="42" stroke="#00f5d4" stroke-width="3" stroke-linecap="round"/>
+        <!-- Shoes -->
+        <ellipse cx="10" cy="43" rx="4" ry="2.5" fill="#f0b429"/>
+        <ellipse cx="26" cy="43" rx="4" ry="2.5" fill="#f0b429"/>
+      </svg>
+    </div>
+
+    <!-- Obstacle will be injected here -->
+    <div class="combo-display" id="comboDisplay"></div>
+  </div>
+
+  <!-- QUESTION PANEL -->
+  <div class="question-panel">
+    <div class="timer-bar-wrap">
+      <div class="timer-bar" id="timerBar"></div>
+    </div>
+    <div class="q-label">
+      Music Question <span class="q-number-badge" id="qBadge">#1</span>
+    </div>
+    <div class="q-text" id="qText">Get ready...</div>
+    <div class="answer-row">
+      <button class="ans-btn" id="ansA" onclick="submitAnswer(0)">
+        <span class="key-hint">Option A</span>
+        <span id="ansAText">—</span>
+      </button>
+      <button class="ans-btn" id="ansB" onclick="submitAnswer(1)">
+        <span class="key-hint">Option B</span>
+        <span id="ansBText">—</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ GAME OVER ═══════ -->
+<div id="gameover" class="screen">
+  <span class="go-icon">💥</span>
+  <div class="go-title">GAME OVER</div>
+  <div class="go-subtitle" id="goSubtitle">The obstacle got you!</div>
+
+  <div class="new-best" id="newBestBadge">🏆 NEW HIGH SCORE!</div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-value" id="goScore">0</span>
+      <span class="stat-label">Final Score</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value" id="goBest">0</span>
+      <span class="stat-label">Best Score</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value" id="goQuestions">0</span>
+      <span class="stat-label">Questions</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value" id="goAccuracy">0%</span>
+      <span class="stat-label">Accuracy</span>
+    </div>
+  </div>
+
+  <div class="go-buttons">
+    <button class="btn-play" onclick="startGame()">▶ PLAY AGAIN</button>
+    <button class="btn-secondary" onclick="showScreen('splash')">⚙ Change Difficulty</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// QUESTIONS BANK (50 two-choice questions)
+// ═══════════════════════════════════════
+const QUESTIONS = [
+  { q:"How many semitones are in an octave?", a:["12","8"], correct:0 },
+  { q:"Is C to G a Perfect 5th or Perfect 4th?", a:["Perfect 5th","Perfect 4th"], correct:0 },
+  { q:"Does a major scale start W-W-H or W-H-W?", a:["W-W-H","W-H-W"], correct:0 },
+  { q:"How many sharps in G major?", a:["1","2"], correct:0 },
+  { q:"Is the relative minor of C major A minor or D minor?", a:["A minor","D minor"], correct:0 },
+  { q:"A major triad has a major 3rd + Perfect 5th. True?", a:["True","False"], correct:0 },
+  { q:"Does V represent the Dominant or Tonic chord?", a:["Dominant","Tonic"], correct:0 },
+  { q:"A diminished triad uses two minor 3rds. True?", a:["True","False"], correct:0 },
+  { q:"Does a dominant 7th add a major or minor 7th?", a:["Minor 7th","Major 7th"], correct:0 },
+  { q:"In 4/4 time, a half note = how many beats?", a:["2","4"], correct:0 },
+  { q:"Does 'Allegro' mean fast or slow?", a:["Fast","Slow"], correct:0 },
+  { q:"A dotted quarter note = 1.5 beats. True?", a:["True","False"], correct:0 },
+  { q:"Is the treble clef also called the G clef?", a:["Yes","No"], correct:0 },
+  { q:"Does 'pp' mean very soft or very loud?", a:["Very soft","Very loud"], correct:0 },
+  { q:"Does crescendo mean getting louder or softer?", a:["Louder","Softer"], correct:0 },
+  { q:"A standard staff has 5 lines. True?", a:["True","False"], correct:0 },
+  { q:"Does staccato mean short/detached or smooth?", a:["Short/detached","Smooth"], correct:0 },
+  { q:"Was Beethoven deaf when he wrote his 9th Symphony?", a:["Yes","No"], correct:0 },
+  { q:"Did Bach belong to the Baroque or Classical period?", a:["Baroque","Classical"], correct:0 },
+  { q:"Is solfège the Do-Re-Mi naming system?", a:["Yes","No"], correct:0 },
+  { q:"F major has 1 flat. True?", a:["True","False"], correct:0 },
+  { q:"Is a tritone 6 or 8 semitones?", a:["6","8"], correct:0 },
+  { q:"Natural minor lowers degrees 3, 6 and 7. True?", a:["True","False"], correct:0 },
+  { q:"Does a pentatonic scale have 5 or 7 notes?", a:["5","7"], correct:0 },
+  { q:"A standard piano has 88 keys. True?", a:["True","False"], correct:0 },
+  { q:"Is C to E♭ a minor 3rd or major 3rd?", a:["Minor 3rd","Major 3rd"], correct:0 },
+  { q:"Is the leading tone in C major the note B?", a:["Yes","No"], correct:0 },
+  { q:"Dorian mode starts on the 2nd degree. True?", a:["True","False"], correct:0 },
+  { q:"Does the circle of fifths move clockwise by 5ths?", a:["Yes","No"], correct:0 },
+  { q:"Is the subdominant the 4th degree of the scale?", a:["Yes","No"], correct:0 },
+  { q:"Does a sus4 chord replace the 3rd with a 4th?", a:["Yes","No"], correct:0 },
+  { q:"Is a power chord root + 5th with no 3rd?", a:["Yes","No"], correct:0 },
+  { q:"A seventh chord has 4 notes. True?", a:["True","False"], correct:0 },
+  { q:"In C major, is the ii chord D minor or D major?", a:["D minor","D major"], correct:0 },
+  { q:"An augmented triad uses two major 3rds. True?", a:["True","False"], correct:0 },
+  { q:"Is a cadence a chord progression ending a phrase?", a:["Yes","No"], correct:0 },
+  { q:"Does ii-V-I come from jazz harmony?", a:["Yes","No"], correct:0 },
+  { q:"Is C-E♭-G a C minor triad?", a:["Yes","No"], correct:0 },
+  { q:"In 6/8 time, are there 6 eighth notes per bar?", a:["Yes","No"], correct:0 },
+  { q:"Does a triplet divide one beat into 3?", a:["Yes","No"], correct:0 },
+  { q:"Does ritardando mean gradually slowing down?", a:["Yes","No"], correct:0 },
+  { q:"Does 'Presto' mean very fast?", a:["Yes","No"], correct:0 },
+  { q:"Is the downbeat the first beat of a measure?", a:["Yes","No"], correct:0 },
+  { q:"Is polyrhythm two different rhythms at once?", a:["Yes","No"], correct:0 },
+  { q:"Do 4 sixteenth notes equal one quarter note?", a:["Yes","No"], correct:0 },
+  { q:"Does 'a cappella' mean without instruments?", a:["Yes","No"], correct:0 },
+  { q:"BPM stands for Beats Per Minute. True?", a:["True","False"], correct:0 },
+  { q:"Did Vivaldi compose 'The Four Seasons'?", a:["Yes","No"], correct:0 },
+  { q:"Did Mozart compose 'The Magic Flute'?", a:["Yes","No"], correct:0 },
+  { q:"Did Stravinsky's Rite of Spring cause a riot in 1913?", a:["Yes","No"], correct:0 },
+  { q:"Is the bass clef also called the F clef?", a:["Yes","No"], correct:0 },
+  { q:"Does 'ff' mean fortissimo (very loud)?", a:["Yes","No"], correct:0 },
+  { q:"Does a natural sign cancel a previous sharp or flat?", a:["Yes","No"], correct:0 },
+  { q:"Does 'D.C. al Fine' mean return to beginning?", a:["Yes","No"], correct:0 },
+  { q:"Is 'mf' the abbreviation for mezzo forte?", a:["Yes","No"], correct:0 },
+  { q:"Does col legno mean play with the bow wood?", a:["Yes","No"], correct:0 },
+  { q:"Is reggae music from Jamaica?", a:["Yes","No"], correct:0 },
+  { q:"Did Chopin write mainly for piano?", a:["Yes","No"], correct:0 },
+  { q:"Is compound meter when beats divide into 3?", a:["Yes","No"], correct:0 },
+  { q:"Haydn is called the 'father of the symphony'. True?", a:["True","False"], correct:0 },
+];
+
+const OBSTACLES = ['🪨','🌵','🔥','⚡','💀','🚧','🗿','⚔️'];
+
+// ═══════════════════════════════════════
+// GAME STATE
+// ═══════════════════════════════════════
+let difficulty = 'easy';
+let baseTime = 10;
+let lives = 3;
+let score = 0;
+let highScore = parseInt(localStorage.getItem('xpk_hs') || '0');
+let questionIndex = 0;
+let totalAnswered = 0;
+let totalCorrect = 0;
+let speedLevel = 1;
+let currentQ = null;
+let timerInterval = null;
+let timeLeft = 0;
+let answered = false;
+let shuffledQ = [];
+let combo = 0;
+let gameActive = false;
+let obstacleEl = null;
+
+const DIFF_TIMES = { easy: 10, medium: 7, hard: 5 };
+const SPEED_INCREASE_EVERY = 7;
+const MIN_TIME = 5;
+
+function selectDiff(el, diff) {
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  difficulty = diff;
+  baseTime = DIFF_TIMES[diff];
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i>0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function startGame() {
+  lives = 3;
+  score = 0;
+  questionIndex = 0;
+  totalAnswered = 0;
+  totalCorrect = 0;
+  speedLevel = 1;
+  combo = 0;
+  gameActive = true;
+  shuffledQ = shuffle([...QUESTIONS]);
+  baseTime = DIFF_TIMES[difficulty];
+
+  updateHUD();
+  updateLives();
+  showScreen('game');
+
+  // reset runner
+  const runner = document.getElementById('runner');
+  runner.classList.remove('crashed');
+
+  setTimeout(() => loadQuestion(), 500);
+}
+
+function getCurrentTime() {
+  // Every 7 questions speed increases, reducing time by 1 sec (min 5)
+  const reduction = Math.floor(questionIndex / SPEED_INCREASE_EVERY);
+  return Math.max(MIN_TIME, baseTime - reduction);
+}
+
+function getSpeedLevel() {
+  return 1 + Math.floor(questionIndex / SPEED_INCREASE_EVERY);
+}
+
+function loadQuestion() {
+  if (!gameActive) return;
+  answered = false;
+
+  // pick question
+  const qi = questionIndex % shuffledQ.length;
+  currentQ = shuffledQ[qi];
+
+  // maybe randomize answer order
+  const flip = Math.random() > 0.5;
+  const displayAnswers = flip
+    ? [currentQ.a[1], currentQ.a[0]]
+    : [currentQ.a[0], currentQ.a[1]];
+  const correctDisplay = flip ? 1 : 0;
+  currentQ._correctDisplay = correctDisplay;
+
+  document.getElementById('qText').textContent = currentQ.q;
+  document.getElementById('ansAText').textContent = displayAnswers[0];
+  document.getElementById('ansBText').textContent = displayAnswers[1];
+  document.getElementById('qBadge').textContent = '#' + (questionIndex + 1);
+
+  const ansA = document.getElementById('ansA');
+  const ansB = document.getElementById('ansB');
+  ansA.className = 'ans-btn';
+  ansB.className = 'ans-btn';
+  ansA.disabled = false;
+  ansB.disabled = false;
+
+  // spawn obstacle
+  spawnObstacle();
+
+  // start timer
+  timeLeft = getCurrentTime();
+  const newSL = getSpeedLevel();
+  if (newSL > speedLevel) {
+    speedLevel = newSL;
+    showSpeedUp();
+  }
+  document.getElementById('hudSpeed').textContent = 'x' + speedLevel;
+
+  startTimer(timeLeft);
+}
+
+function startTimer(seconds) {
+  clearInterval(timerInterval);
+  const bar = document.getElementById('timerBar');
+  const start = Date.now();
+  const duration = seconds * 1000;
+
+  bar.style.width = '100%';
+  bar.style.background = 'var(--green)';
+
+  timerInterval = setInterval(() => {
+    const elapsed = Date.now() - start;
+    const pct = Math.max(0, 100 - (elapsed / duration * 100));
+    bar.style.width = pct + '%';
+
+    if (pct < 30) bar.style.background = 'var(--red)';
+    else if (pct < 60) bar.style.background = 'var(--gold)';
+    else bar.style.background = 'var(--green)';
+
+    if (elapsed >= duration) {
+      clearInterval(timerInterval);
+      if (!answered) timeOut();
+    }
+  }, 50);
+}
+
+function submitAnswer(btnIndex) {
+  if (answered || !gameActive) return;
+  answered = true;
+  clearInterval(timerInterval);
+  totalAnswered++;
+
+  removeObstacle();
+
+  const ansA = document.getElementById('ansA');
+  const ansB = document.getElementById('ansB');
+  ansA.disabled = true;
+  ansB.disabled = true;
+
+  const isCorrect = btnIndex === currentQ._correctDisplay;
+
+  if (isCorrect) {
+    totalCorrect++;
+    combo++;
+    score += 10 + (combo > 1 ? combo * 2 : 0);
+
+    const btn = btnIndex === 0 ? ansA : ansB;
+    btn.classList.add('correct');
+
+    flashScreen('green');
+    showFloatScore();
+    showCombo();
+    jumpRunner();
+    updateHUD();
+
+    questionIndex++;
+    setTimeout(() => loadQuestion(), 900);
+  } else {
+    const btn = btnIndex === 0 ? ansA : ansB;
+    btn.classList.add('wrong');
+    const correctBtn = currentQ._correctDisplay === 0 ? ansA : ansB;
+    correctBtn.classList.add('correct');
+
+    combo = 0;
+    loseLife('Wrong answer!');
+  }
+}
+
+function timeOut() {
+  if (!gameActive) return;
+  answered = true;
+  totalAnswered++;
+  combo = 0;
+
+  const ansA = document.getElementById('ansA');
+  const ansB = document.getElementById('ansB');
+  ansA.disabled = true;
+  ansB.disabled = true;
+
+  removeObstacle();
+  loseLife("Time's up!");
+}
+
+function loseLife(reason) {
+  lives--;
+  updateLives();
+  flashScreen('red');
+  crashRunner();
+
+  if (lives <= 0) {
+    setTimeout(() => endGame(reason), 1000);
+  } else {
+    setTimeout(() => {
+      resetRunner();
+      questionIndex++;
+      loadQuestion();
+    }, 1200);
+  }
+}
+
+function endGame(reason) {
+  gameActive = false;
+  clearInterval(timerInterval);
+  removeObstacle();
+
+  const isNewBest = score > highScore;
+  if (isNewBest) {
+    highScore = score;
+    localStorage.setItem('xpk_hs', highScore);
+  }
+
+  document.getElementById('goScore').textContent = score;
+  document.getElementById('goBest').textContent = highScore;
+  document.getElementById('goQuestions').textContent = totalAnswered;
+  document.getElementById('goAccuracy').textContent = totalAnswered > 0
+    ? Math.round((totalCorrect / totalAnswered) * 100) + '%'
+    : '0%';
+  document.getElementById('goSubtitle').textContent = reason;
+  document.getElementById('newBestBadge').style.display = isNewBest ? 'block' : 'none';
+  document.getElementById('hudBest').textContent = highScore;
+
+  showScreen('gameover');
+}
+
+function updateHUD() {
+  document.getElementById('hudScore').textContent = score;
+  document.getElementById('hudBest').textContent = highScore;
+  document.getElementById('hudSpeed').textContent = 'x' + getSpeedLevel();
+}
+
+function updateLives() {
+  for (let i = 1; i <= 3; i++) {
+    document.getElementById('h'+i).classList.toggle('lost', i > lives);
+  }
+}
+
+function flashScreen(color) {
+  const overlay = document.getElementById('flashOverlay');
+  overlay.className = 'flash-overlay ' + color + ' show';
+  setTimeout(() => overlay.classList.remove('show'), 200);
+}
+
+function jumpRunner() {
+  const runner = document.getElementById('runner');
+  runner.style.transition = 'bottom 0.25s ease-out';
+  runner.style.bottom = '110px';
+  setTimeout(() => {
+    runner.style.transition = 'bottom 0.3s ease-in';
+    runner.style.bottom = '52px';
+  }, 280);
+}
+
+function crashRunner() {
+  const runner = document.getElementById('runner');
+  runner.classList.add('crashed');
+}
+
+function resetRunner() {
+  const runner = document.getElementById('runner');
+  runner.classList.remove('crashed');
+  runner.style.bottom = '52px';
+}
+
+function spawnObstacle() {
+  removeObstacle();
+  const canvas = document.getElementById('gameCanvas');
+  const el = document.createElement('div');
+  el.className = 'obstacle';
+  el.id = 'obstacleEl';
+
+  const obsIcon = OBSTACLES[Math.floor(Math.random() * OBSTACLES.length)];
+  el.innerHTML = `<div class="obstacle-visual">${obsIcon}</div>`;
+
+  const duration = getCurrentTime();
+  el.style.animationDuration = duration + 's';
+  el.style.animationTimingFunction = 'linear';
+
+  canvas.appendChild(el);
+  obstacleEl = el;
+}
+
+function removeObstacle() {
+  if (obstacleEl) {
+    obstacleEl.remove();
+    obstacleEl = null;
+  }
+  const old = document.getElementById('obstacleEl');
+  if (old) old.remove();
+}
+
+function showSpeedUp() {
+  const canvas = document.getElementById('gameCanvas');
+  const notif = document.createElement('div');
+  notif.className = 'speed-notif';
+  notif.textContent = '⚡ SPEED UP! x' + speedLevel;
+  canvas.appendChild(notif);
+  setTimeout(() => notif.remove(), 1500);
+}
+
+function showFloatScore() {
+  const panel = document.querySelector('.question-panel');
+  const el = document.createElement('div');
+  el.className = 'float-score';
+  el.style.left = '50%';
+  el.style.top = '10px';
+  el.style.transform = 'translateX(-50%)';
+  el.textContent = combo > 1 ? `+${10 + combo*2} 🔥x${combo}` : '+10';
+  panel.appendChild(el);
+  setTimeout(() => el.remove(), 900);
+}
+
+function showCombo() {
+  const el = document.getElementById('comboDisplay');
+  if (combo >= 3) {
+    el.textContent = `🔥 ${combo}x COMBO!`;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 1000);
+  } else {
+    el.classList.remove('show');
+  }
+}
+</script>
+</body>
+</html>
